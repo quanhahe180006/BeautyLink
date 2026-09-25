@@ -153,13 +153,15 @@ Copy-Item backend/.env.properties.example backend/.env.properties
 Open `backend/.env.properties` and enter local values:
 
 ```properties
-MYSQL_URL=jdbc:mysql://localhost:3306/beautylink?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&characterEncoding=UTF-8
+MYSQL_JDBC_URL=jdbc:mysql://localhost:3306/beautylink?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&characterEncoding=UTF-8
 MYSQL_USERNAME=your_mysql_username
 MYSQL_PASSWORD=your_mysql_password
 JWT_SECRET=replace-with-a-long-random-secret-of-at-least-32-characters
 JWT_EXPIRATION_MS=86400000
 CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 SUPPLIER_AUTO_VERIFY=true
+DEMO_DATA_ENABLED=true
+DEMO_ACCOUNT_PASSWORD=Demo123!
 ```
 
 `backend/.env.properties` is ignored by Git. Never commit this file or paste production secrets into source code.
@@ -203,7 +205,7 @@ Stop either server with `Ctrl+C` in its terminal.
 
 ## Demo accounts
 
-All built-in demo accounts use the password `Demo123!`.
+Local built-in demo accounts use the password `Demo123!`. A deployment must set a private `DEMO_ACCOUNT_PASSWORD` instead of publishing this default.
 
 | Role | Phone | Email |
 |---|---|---|
@@ -295,9 +297,9 @@ Authorization: Bearer <access-token>
 
 ## Seed data
 
-Development startup seeders run outside the `prod` Spring profile:
+The two supported cities and five service categories are idempotently inserted in every environment because supplier registration depends on them. Demo startup seeders run only when `DEMO_DATA_ENABLED=true` (the local default). Production defaults this setting to `false`, so a deployment must opt in deliberately:
 
-- Core accounts, locations, categories, and the first supplier are inserted into an empty catalog.
+- Core demo accounts and the first supplier are inserted into an empty catalog.
 - The presentation catalog is idempotently inserted or updated on later starts.
 - Demo suppliers are marked with `demo_data = TRUE`.
 - Both supported cities have services in every category.
@@ -377,6 +379,8 @@ BeautyLink/
 
 ## Deployment overview
 
+The complete peer handoff, exact Railway reference variables, secret generation, Vercel setup, CORS setup, and smoke-test checklist are in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ### Frontend on Vercel
 
 1. Import the GitHub repository into Vercel.
@@ -388,11 +392,11 @@ BeautyLink/
 
 1. Deploy from the `backend` directory using its Dockerfile/Railway configuration.
 2. Provision a MySQL database.
-3. Set `MYSQL_URL` to a valid JDBC MySQL URL.
-4. Set `MYSQL_USERNAME`, `MYSQL_PASSWORD`, and a new production `JWT_SECRET`.
+3. Reference Railway's `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, and `MYSQLPASSWORD` variables from the backend service.
+4. Set a new production `JWT_SECRET`.
 5. Set `CORS_ALLOWED_ORIGINS` to the exact Vercel website origin.
-6. Set `SPRING_PROFILES_ACTIVE=prod` when demo seeders must be disabled.
-7. Keep `SUPPLIER_AUTO_VERIFY=false` so new partners require approval in production.
+6. For the classroom catalog, set `DEMO_DATA_ENABLED=true` and provide a private `DEMO_ACCOUNT_PASSWORD`.
+7. For a real launch, set `DEMO_DATA_ENABLED=false` and `SUPPLIER_AUTO_VERIFY=false`.
 
 Do not use the demo passwords or development JWT secret in production.
 

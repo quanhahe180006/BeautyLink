@@ -3,9 +3,10 @@ package com.example.backend.bootstrap;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +26,8 @@ import static com.example.backend.model.DomainEnums.*;
  * records can be identified and removed without confusing them with real partners.
  */
 @Component
-@Profile("!prod")
-@Order(2)
+@ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true", matchIfMissing = true)
+@Order(3)
 public class DemoCatalogSeeder implements CommandLineRunner {
     private final UserAccountRepository users;
     private final LocationRepository locations;
@@ -36,12 +37,14 @@ public class DemoCatalogSeeder implements CommandLineRunner {
     private final ServiceOfferingRepository services;
     private final AvailabilityRuleRepository rules;
     private final PasswordEncoder encoder;
+    private final String demoPassword;
     private String demoPasswordHash;
 
     public DemoCatalogSeeder(UserAccountRepository users, LocationRepository locations,
                              ServiceCategoryRepository categories, SupplierRepository suppliers,
                              PractitionerRepository practitioners, ServiceOfferingRepository services,
-                             AvailabilityRuleRepository rules, PasswordEncoder encoder) {
+                             AvailabilityRuleRepository rules, PasswordEncoder encoder,
+                             @Value("${app.demo-data.password}") String demoPassword) {
         this.users = users;
         this.locations = locations;
         this.categories = categories;
@@ -50,6 +53,7 @@ public class DemoCatalogSeeder implements CommandLineRunner {
         this.services = services;
         this.rules = rules;
         this.encoder = encoder;
+        this.demoPassword = demoPassword;
     }
 
     @Override
@@ -61,7 +65,7 @@ public class DemoCatalogSeeder implements CommandLineRunner {
         Map<String, ServiceCategory> categoryMap = categories.findByActiveTrueOrderByDisplayOrderAsc().stream()
                 .collect(Collectors.toMap(ServiceCategory::getSlug, Function.identity()));
         if (categoryMap.isEmpty()) return;
-        demoPasswordHash = encoder.encode("Demo123!");
+        demoPasswordHash = encoder.encode(demoPassword);
         if (hcm != null) demoEntries().forEach(entry -> seed(entry, hcm, categoryMap));
         if (hanoi != null) hanoiEntries().forEach(entry -> seed(entry, hanoi, categoryMap));
     }

@@ -3,8 +3,9 @@ package com.example.backend.bootstrap;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,16 +14,22 @@ import java.time.*;
 import java.util.*;
 import static com.example.backend.model.DomainEnums.*;
 
-@Component @Profile("!prod") @Order(1)
+@Component
+@ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true", matchIfMissing = true)
+@Order(2)
 public class DevelopmentDataSeeder implements CommandLineRunner {
     private final UserAccountRepository users; private final LocationRepository locations; private final ServiceCategoryRepository categories;
     private final SupplierRepository suppliers; private final PractitionerRepository practitioners; private final ServiceOfferingRepository services;
-    private final AvailabilityRuleRepository rules; private final PasswordEncoder encoder;
-    public DevelopmentDataSeeder(UserAccountRepository users, LocationRepository locations, ServiceCategoryRepository categories, SupplierRepository suppliers, PractitionerRepository practitioners, ServiceOfferingRepository services, AvailabilityRuleRepository rules, PasswordEncoder encoder) {
-        this.users = users; this.locations = locations; this.categories = categories; this.suppliers = suppliers; this.practitioners = practitioners; this.services = services; this.rules = rules; this.encoder = encoder;
+    private final AvailabilityRuleRepository rules; private final PasswordEncoder encoder; private final String demoPassword;
+    public DevelopmentDataSeeder(UserAccountRepository users, LocationRepository locations, ServiceCategoryRepository categories, SupplierRepository suppliers, PractitionerRepository practitioners, ServiceOfferingRepository services, AvailabilityRuleRepository rules, PasswordEncoder encoder,
+                                 @Value("${app.demo-data.password}") String demoPassword) {
+        this.users = users; this.locations = locations; this.categories = categories; this.suppliers = suppliers; this.practitioners = practitioners; this.services = services; this.rules = rules; this.encoder = encoder; this.demoPassword = demoPassword;
     }
     @Override @Transactional public void run(String... args) {
-        seedAccounts(); if (categories.count() > 0 || suppliers.count() > 0) return;
+        if (demoPassword == null || demoPassword.length() < 8) {
+            throw new IllegalStateException("DEMO_ACCOUNT_PASSWORD must contain at least 8 characters when demo data is enabled");
+        }
+        seedAccounts(); if (suppliers.count() > 0) return;
         Location hcm = location("Thành phố Hồ Chí Minh", "ho-chi-minh", LocationType.PROVINCE_CITY, null);
         Location hanoi = location("Hà Nội", "ha-noi", LocationType.PROVINCE_CITY, null);
         Location danang = location("Đà Nẵng", "da-nang", LocationType.PROVINCE_CITY, null);
@@ -57,16 +64,19 @@ public class DevelopmentDataSeeder implements CommandLineRunner {
         for (Practitioner p : List.of(linh, minh)) for (DayOfWeek day : DayOfWeek.values()) if (day != DayOfWeek.SUNDAY) rule(p, day, LocalTime.of(9, 0), LocalTime.of(19, 0));
     }
     private void seedAccounts() {
-        account("Khách hàng Demo", "0900000001", "customer@beautylink.vn", "Demo123!", Role.CUSTOMER);
-        account("Lumière Owner", "0900000002", "supplier@beautylink.vn", "Demo123!", Role.SUPPLIER);
-        account("Nhân viên Hỗ trợ", "0900000003", "staff@beautylink.vn", "Demo123!", Role.STAFF);
-        account("Quản trị BeautyLink", "0900000004", "admin@beautylink.vn", "Demo123!", Role.ADMIN);
+        account("Khách hàng Demo", "0900000001", "customer@beautylink.vn", demoPassword, Role.CUSTOMER);
+        account("Lumière Owner", "0900000002", "supplier@beautylink.vn", demoPassword, Role.SUPPLIER);
+        account("Nhân viên Hỗ trợ", "0900000003", "staff@beautylink.vn", demoPassword, Role.STAFF);
+        account("Quản trị BeautyLink", "0900000004", "admin@beautylink.vn", demoPassword, Role.ADMIN);
     }
     private UserAccount account(String name, String phone, String email, String password, Role role) {
-        return users.findByPhone(phone).orElseGet(() -> { UserAccount u = new UserAccount(); u.setFullName(name); u.setPhone(phone); u.setEmail(email); u.setPasswordHash(encoder.encode(password)); u.setRole(role); return users.save(u); });
+        UserAccount account = users.findByPhone(phone).orElseGet(UserAccount::new);
+        account.setFullName(name); account.setPhone(phone); account.setEmail(email);
+        account.setPasswordHash(encoder.encode(password)); account.setRole(role); account.setStatus(AccountStatus.ACTIVE);
+        return users.save(account);
     }
-    private Location location(String name, String slug, LocationType type, Location parent) { Location l = new Location(); l.setName(name); l.setSlug(slug); l.setType(type); l.setParent(parent); return locations.save(l); }
-    private ServiceCategory category(String slug, String name, String description, String image, int order) { ServiceCategory c = new ServiceCategory(); c.setSlug(slug); c.setName(name); c.setDescription(description); c.setImageUrl(image); c.setDisplayOrder(order); return categories.save(c); }
+    private Location location(String name, String slug, LocationType type, Location parent) { Location l = locations.findBySlug(slug).orElseGet(Location::new); l.setName(name); l.setSlug(slug); l.setType(type); l.setParent(parent); l.setActive(true); return locations.save(l); }
+    private ServiceCategory category(String slug, String name, String description, String image, int order) { ServiceCategory c = categories.findBySlug(slug).orElseGet(ServiceCategory::new); c.setSlug(slug); c.setName(name); c.setDescription(description); c.setImageUrl(image); c.setDisplayOrder(order); c.setActive(true); return categories.save(c); }
     private Practitioner practitioner(Supplier supplier, String name, String specialty, String avatar) { Practitioner p = new Practitioner(); p.setSupplier(supplier); p.setDisplayName(name); p.setSpecialty(specialty); p.setAvatarUrl(avatar); return practitioners.save(p); }
     private void offering(Supplier supplier, ServiceCategory category, String name, String description, int price, int duration, String image) { ServiceOffering s = new ServiceOffering(); s.setSupplier(supplier); s.setCategory(category); s.setName(name); s.setDescription(description); s.setPrice(BigDecimal.valueOf(price)); s.setDurationMinutes(duration); s.setImageUrl(image); services.save(s); }
     private void rule(Practitioner p, DayOfWeek day, LocalTime start, LocalTime end) { AvailabilityRule r = new AvailabilityRule(); r.setPractitioner(p); r.setDayOfWeek(day); r.setStartTime(start); r.setEndTime(end); r.setBreakStart(LocalTime.of(12, 0)); r.setBreakEnd(LocalTime.of(13, 0)); r.setSlotMinutes(30); rules.save(r); }
