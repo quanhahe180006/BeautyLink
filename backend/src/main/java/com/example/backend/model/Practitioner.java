@@ -11,7 +11,7 @@ public class Practitioner {
     @Column(nullable = false, length = 120) private String displayName;
     @Column(length = 500) private String bio;
     @Column(length = 160) private String specialty;
-    @Column(length = 600) private String avatarUrl;
+    @Lob @Column(columnDefinition = "LONGTEXT") private String avatarUrl;
     @Column(nullable = false) private boolean active = true;
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public Supplier getSupplier() { return supplier; } public void setSupplier(Supplier supplier) { this.supplier = supplier; }

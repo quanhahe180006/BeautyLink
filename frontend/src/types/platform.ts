@@ -25,6 +25,7 @@ export interface SupplierProfile {
   locationId: number;
   locationName: string;
   addressLine: string;
+  imageUrl?: string | null;
   verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
   rating: number;
   reviewCount: number;
@@ -69,6 +70,7 @@ export interface Practitioner {
   displayName: string;
   specialty: string;
   avatarUrl?: string | null;
+  bio?: string | null;
 }
 
 export interface BeautyService {
@@ -93,6 +95,31 @@ export interface BeautyService {
   supplierDemo: boolean;
   supplierNearbyFeatured: boolean;
   supplierNewPartner: boolean;
+}
+
+export interface SupplierService {
+  id: number;
+  categoryId: number;
+  categorySlug: string;
+  categoryName: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  originalPrice?: number | null;
+  durationMinutes: number;
+  imageUrl?: string | null;
+  active: boolean;
+}
+
+export interface SupplierServicePayload {
+  categoryId: number;
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number | null;
+  durationMinutes: number;
+  imageUrl?: string | null;
+  active: boolean;
 }
 
 export interface BookingRecord {

@@ -12,6 +12,8 @@ import type {
   SupplierProfile,
   SupplierRegistrationRequest,
   SupplierRegistrationResponse,
+  SupplierService,
+  SupplierServicePayload,
 } from '../types';
 
 const unwrap = <T,>(request: Promise<{ data: T }>) => request.then(({ data }) => data);
@@ -43,7 +45,13 @@ export const platformApi = {
   cancelBooking: (id: number) => unwrap<BookingRecord>(apiClient.patch(`/v1/bookings/${id}/cancel`)),
   supplierPractitioners: () => unwrap<Practitioner[]>(apiClient.get('/v1/supplier/practitioners')),
   supplierProfile: () => unwrap<SupplierProfile>(apiClient.get('/v1/supplier/profile')),
+  updateSupplierProfile: (payload: Pick<SupplierProfile, 'name' | 'businessType' | 'description' | 'addressLine' | 'imageUrl'>) => unwrap<SupplierProfile>(apiClient.put('/v1/supplier/profile', payload)),
+  supplierServices: () => unwrap<SupplierService[]>(apiClient.get('/v1/supplier/services')),
+  createSupplierService: (payload: SupplierServicePayload) => unwrap<SupplierService>(apiClient.post('/v1/supplier/services', payload)),
+  updateSupplierService: (id: number, payload: SupplierServicePayload) => unwrap<SupplierService>(apiClient.put(`/v1/supplier/services/${id}`, payload)),
+  deactivateSupplierService: (id: number) => unwrap<void>(apiClient.delete(`/v1/supplier/services/${id}`)),
   createPractitioner: (payload: { displayName: string; specialty?: string; bio?: string; avatarUrl?: string }) => unwrap<Practitioner>(apiClient.post('/v1/supplier/practitioners', payload)),
+  updatePractitioner: (id: number, payload: { displayName: string; specialty?: string; bio?: string; avatarUrl?: string }) => unwrap<Practitioner>(apiClient.put(`/v1/supplier/practitioners/${id}`, payload)),
   practitionerSchedule: (id: number) => unwrap<ScheduleRule[]>(apiClient.get(`/v1/supplier/practitioners/${id}/schedule`)),
   replaceSchedule: (id: number, rules: ScheduleRule[]) => unwrap<ScheduleRule[]>(apiClient.put(`/v1/supplier/practitioners/${id}/schedule`, { rules })),
   supplierBookings: () => unwrap<BookingRecord[]>(apiClient.get('/v1/bookings/supplier')),

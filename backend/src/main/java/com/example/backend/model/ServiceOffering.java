@@ -14,7 +14,7 @@ public class ServiceOffering {
     @Column(nullable = false, precision = 12, scale = 2) private BigDecimal price;
     @Column(precision = 12, scale = 2) private BigDecimal originalPrice;
     @Column(nullable = false) private int durationMinutes;
-    @Column(length = 600) private String imageUrl;
+    @Lob @Column(columnDefinition = "LONGTEXT") private String imageUrl;
     @Column(nullable = false) private boolean active = true;
     @Column(nullable = false, columnDefinition = "boolean default false") private boolean featured = false;
     @Column(length = 500) private String highlightText;

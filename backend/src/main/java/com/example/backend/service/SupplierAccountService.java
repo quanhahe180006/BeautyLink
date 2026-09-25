@@ -4,12 +4,14 @@ import com.example.backend.dto.ApiDtos.*;
 import com.example.backend.exception.ApiException;
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
+import java.net.URI;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
@@ -27,10 +29,15 @@ public class SupplierAccountService {
     private final AvailabilityRuleRepository rules;
     private final PasswordEncoder encoder;
     private final AuthService auth;
+    private final ServiceCategoryRepository categories;
+    private final ServiceOfferingRepository services;
+    private final boolean autoVerify;
 
     public SupplierAccountService(UserAccountRepository users, SupplierRepository suppliers, LocationRepository locations,
                                   PractitionerRepository practitioners, AvailabilityRuleRepository rules,
-                                  PasswordEncoder encoder, AuthService auth) {
+                                  PasswordEncoder encoder, AuthService auth, ServiceCategoryRepository categories,
+                                  ServiceOfferingRepository services,
+                                  @Value("${app.supplier.auto-verify:false}") boolean autoVerify) {
         this.users = users;
         this.suppliers = suppliers;
         this.locations = locations;
@@ -38,6 +45,9 @@ public class SupplierAccountService {
         this.rules = rules;
         this.encoder = encoder;
         this.auth = auth;
+        this.categories = categories;
+        this.services = services;
+        this.autoVerify = autoVerify;
     }
 
     @Transactional
@@ -68,7 +78,8 @@ public class SupplierAccountService {
         supplier.setDescription(blankToNull(request.description()));
         supplier.setLocation(city);
         supplier.setAddressLine(request.addressLine().trim());
-        supplier.setVerificationStatus(VerificationStatus.PENDING);
+        supplier.setVerificationStatus(autoVerify ? VerificationStatus.VERIFIED : VerificationStatus.PENDING);
+        supplier.setNewPartner(true);
         suppliers.save(supplier);
 
         Practitioner practitioner = new Practitioner();
@@ -88,6 +99,53 @@ public class SupplierAccountService {
     }
 
     @Transactional
+    public SupplierResponse updateProfile(UserAccount owner, UpdateSupplierProfileRequest request) {
+        Supplier supplier = requireSupplier(owner);
+        supplier.setName(request.name().trim());
+        supplier.setBusinessType(request.businessType().trim());
+        supplier.setDescription(blankToNull(request.description()));
+        supplier.setAddressLine(request.addressLine().trim());
+        supplier.setImageUrl(normalizeImageSource(request.imageUrl()));
+        promoteManualSupplier(supplier);
+        return response(suppliers.save(supplier));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SupplierServiceResponse> services(UserAccount owner) {
+        Supplier supplier = requireSupplier(owner);
+        return services.findBySupplierIdOrderByIdDesc(supplier.getId()).stream().map(this::serviceResponse).toList();
+    }
+
+    @Transactional
+    public SupplierServiceResponse createService(UserAccount owner, UpsertSupplierServiceRequest request) {
+        Supplier supplier = requireSupplier(owner);
+        ServiceOffering offering = new ServiceOffering();
+        offering.setSupplier(supplier);
+        applyService(offering, request);
+        promoteManualSupplier(supplier);
+        suppliers.save(supplier);
+        return serviceResponse(services.save(offering));
+    }
+
+    @Transactional
+    public SupplierServiceResponse updateService(UserAccount owner, Long serviceId, UpsertSupplierServiceRequest request) {
+        Supplier supplier = requireSupplier(owner);
+        ServiceOffering offering = requireOwnedService(supplier, serviceId);
+        applyService(offering, request);
+        promoteManualSupplier(supplier);
+        suppliers.save(supplier);
+        return serviceResponse(services.save(offering));
+    }
+
+    @Transactional
+    public void deactivateService(UserAccount owner, Long serviceId) {
+        Supplier supplier = requireSupplier(owner);
+        ServiceOffering offering = requireOwnedService(supplier, serviceId);
+        offering.setActive(false);
+        services.save(offering);
+    }
+
+    @Transactional
     public PractitionerResponse createPractitioner(UserAccount owner, CreatePractitionerRequest request) {
         Supplier supplier = requireSupplier(owner);
         Practitioner practitioner = new Practitioner();
@@ -95,15 +153,64 @@ public class SupplierAccountService {
         practitioner.setDisplayName(request.displayName().trim());
         practitioner.setSpecialty(blankToNull(request.specialty()));
         practitioner.setBio(blankToNull(request.bio()));
-        practitioner.setAvatarUrl(blankToNull(request.avatarUrl()));
+        practitioner.setAvatarUrl(normalizeImageSource(request.avatarUrl()));
         practitioners.save(practitioner);
         createDefaultSchedule(practitioner);
-        return new PractitionerResponse(practitioner.getId(), practitioner.getDisplayName(), practitioner.getSpecialty(), practitioner.getAvatarUrl());
+        return new PractitionerResponse(practitioner.getId(), practitioner.getDisplayName(), practitioner.getSpecialty(), practitioner.getAvatarUrl(), practitioner.getBio());
+    }
+
+    @Transactional
+    public PractitionerResponse updatePractitioner(UserAccount owner, Long practitionerId, CreatePractitionerRequest request) {
+        Practitioner practitioner = practitioners.findByIdAndSupplierOwnerId(practitionerId, owner.getId())
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "PRACTITIONER_NOT_FOUND", "Không tìm thấy chuyên viên của gian hàng"));
+        practitioner.setDisplayName(request.displayName().trim());
+        practitioner.setSpecialty(blankToNull(request.specialty()));
+        practitioner.setBio(blankToNull(request.bio()));
+        practitioner.setAvatarUrl(normalizeImageSource(request.avatarUrl()));
+        practitioners.save(practitioner);
+        return new PractitionerResponse(practitioner.getId(), practitioner.getDisplayName(), practitioner.getSpecialty(), practitioner.getAvatarUrl(), practitioner.getBio());
     }
 
     private Supplier requireSupplier(UserAccount owner) {
         return suppliers.findByOwnerId(owner.getId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "SUPPLIER_NOT_FOUND", "Không tìm thấy hồ sơ nhà cung cấp"));
+    }
+
+    private ServiceOffering requireOwnedService(Supplier supplier, Long serviceId) {
+        return services.findById(serviceId)
+                .filter(service -> service.getSupplier().getId().equals(supplier.getId()))
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "SERVICE_NOT_FOUND", "Không tìm thấy dịch vụ của gian hàng"));
+    }
+
+    private void applyService(ServiceOffering offering, UpsertSupplierServiceRequest request) {
+        ServiceCategory category = categories.findById(request.categoryId())
+                .filter(ServiceCategory::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "CATEGORY_NOT_FOUND", "Danh mục dịch vụ không hợp lệ"));
+        offering.setCategory(category);
+        offering.setName(request.name().trim());
+        offering.setDescription(blankToNull(request.description()));
+        offering.setPrice(request.price());
+        offering.setOriginalPrice(request.originalPrice());
+        offering.setDurationMinutes(request.durationMinutes());
+        String image = normalizeImageSource(request.imageUrl());
+        offering.setImageUrl(image == null ? category.getImageUrl() : image);
+        offering.setHighlightText(blankToNull(request.description()));
+        offering.setActive(request.active());
+        if (autoVerify && !offering.getSupplier().isDemoData()) offering.setFeatured(true);
+    }
+
+    private void promoteManualSupplier(Supplier supplier) {
+        supplier.setNewPartner(true);
+        if (autoVerify && supplier.getVerificationStatus() == VerificationStatus.PENDING) {
+            supplier.setVerificationStatus(VerificationStatus.VERIFIED);
+        }
+    }
+
+    private SupplierServiceResponse serviceResponse(ServiceOffering service) {
+        ServiceCategory category = service.getCategory();
+        return new SupplierServiceResponse(service.getId(), category.getId(), category.getSlug(), category.getName(),
+                service.getName(), service.getDescription(), service.getPrice(), service.getOriginalPrice(),
+                service.getDurationMinutes(), service.getImageUrl(), service.isActive());
     }
 
     private void createDefaultSchedule(Practitioner practitioner) {
@@ -125,7 +232,7 @@ public class SupplierAccountService {
         Location location = supplier.getLocation();
         return new SupplierResponse(supplier.getId(), supplier.getName(), supplier.getSlug(), supplier.getBusinessType(),
                 supplier.getDescription(), location == null ? null : location.getId(), location == null ? null : location.getName(),
-                supplier.getAddressLine(), supplier.getVerificationStatus(), supplier.getRating(), supplier.getReviewCount());
+                supplier.getAddressLine(), supplier.getImageUrl(), supplier.getVerificationStatus(), supplier.getRating(), supplier.getReviewCount());
     }
 
     private String uniqueSlug(String value) {
@@ -142,5 +249,18 @@ public class SupplierAccountService {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private String normalizeImageSource(String value) {
+        String source = blankToNull(value);
+        if (source == null) return null;
+        if (source.startsWith("data:image/jpeg;base64,") || source.startsWith("data:image/png;base64,") || source.startsWith("data:image/webp;base64,")) return source;
+        try {
+            URI uri = URI.create(source);
+            if (("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) && uri.getHost() != null) return source;
+        } catch (IllegalArgumentException ignored) {
+            // Converted into a stable API validation response below.
+        }
+        throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_IMAGE", "Ảnh phải là tệp JPG, PNG, WEBP hoặc đường dẫn HTTP hợp lệ");
     }
 }

@@ -30,17 +30,35 @@ public final class ApiDtos {
             @Size(max = 1500) String description,
             @Size(max = 160) String specialty) {}
     public record SupplierResponse(Long id, String name, String slug, String businessType, String description,
-                                   Long locationId, String locationName, String addressLine,
+                                   Long locationId, String locationName, String addressLine, String imageUrl,
                                    VerificationStatus verificationStatus, double rating, int reviewCount) {}
     public record SupplierRegistrationResponse(AuthResponse auth, SupplierResponse supplier) {}
+    public record UpdateSupplierProfileRequest(
+            @NotBlank @Size(min = 2, max = 160) String name,
+            @NotBlank @Size(max = 120) String businessType,
+            @Size(max = 1500) String description,
+            @NotBlank @Size(max = 255) String addressLine,
+            @Size(max = 2_000_000) String imageUrl) {}
 
     public record LocationResponse(Long id, String name, String slug, LocationType type, Long parentId) {}
     public record CategoryResponse(Long id, String slug, String name, String description, String imageUrl) {}
-    public record PractitionerResponse(Long id, String displayName, String specialty, String avatarUrl) {}
+    public record PractitionerResponse(Long id, String displayName, String specialty, String avatarUrl, String bio) {}
     public record CreatePractitionerRequest(@NotBlank @Size(max = 120) String displayName,
                                             @Size(max = 160) String specialty,
                                             @Size(max = 500) String bio,
-                                            @Size(max = 600) String avatarUrl) {}
+                                            @Size(max = 2_000_000) String avatarUrl) {}
+    public record UpsertSupplierServiceRequest(
+            @NotNull Long categoryId,
+            @NotBlank @Size(max = 160) String name,
+            @Size(max = 1500) String description,
+            @NotNull @DecimalMin("1000") @Digits(integer = 10, fraction = 2) BigDecimal price,
+            @DecimalMin("1000") @Digits(integer = 10, fraction = 2) BigDecimal originalPrice,
+            @Min(15) @Max(480) int durationMinutes,
+            @Size(max = 2_000_000) String imageUrl,
+            boolean active) {}
+    public record SupplierServiceResponse(Long id, Long categoryId, String categorySlug, String categoryName,
+                                          String name, String description, BigDecimal price, BigDecimal originalPrice,
+                                          int durationMinutes, String imageUrl, boolean active) {}
     public record ServiceResponse(Long id, String name, String description, BigDecimal price, int durationMinutes,
                                   String imageUrl, String categorySlug, Long supplierId, String supplierName,
                                   String supplierAddress, double rating, List<PractitionerResponse> practitioners,

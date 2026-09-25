@@ -19,8 +19,10 @@ BeautyLink is a full-stack marketplace that connects customers with third-party 
 
 ### Supplier
 
-- Register a supplier business and receive a `PENDING` profile.
+- Register a supplier business. Local development auto-verifies it for demonstrations; production keeps it `PENDING` until approval.
 - Access a supplier dashboard.
+- Upload a store thumbnail and practitioner avatar images.
+- Create, edit, publish, hide, and categorize store services.
 - Manage practitioners and their weekly working hours, breaks, and slot duration.
 - View appointments made with that supplier.
 
@@ -157,6 +159,7 @@ MYSQL_PASSWORD=your_mysql_password
 JWT_SECRET=replace-with-a-long-random-secret-of-at-least-32-characters
 JWT_EXPIRATION_MS=86400000
 CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+SUPPLIER_AUTO_VERIFY=true
 ```
 
 `backend/.env.properties` is ignored by Git. Never commit this file or paste production secrets into source code.
@@ -230,6 +233,16 @@ Guests do not have database accounts. They can browse the catalog but must regis
 4. Configure working days, opening/closing time, break, and slot length.
 5. Save the schedule. Customer availability updates from the stored rules.
 
+### Configure a supplier store
+
+1. Register or sign in with a supplier account.
+2. Open **Gian hàng & dịch vụ** in the supplier dashboard.
+3. Upload the store thumbnail and save the business profile.
+4. Select **Tạo dịch vụ**, choose a category, enter the price and duration, and upload a service image.
+5. Save the active service. In local demo mode, manually created suppliers are shown before seeded suppliers on the homepage.
+
+Uploaded JPG, PNG, and WEBP files are resized in the browser and stored with the related MySQL record. The original file limit is 10 MB.
+
 ### Process a report
 
 1. A customer submits a report from an eligible page.
@@ -269,7 +282,8 @@ All application endpoints use the `/api/v1` prefix.
 | Catalog | `GET /locations`, `GET /categories`, `GET /categories/{slug}/services` |
 | Availability | `GET /services/{serviceId}/availability` |
 | Customer bookings | `POST /bookings`, `GET /bookings/mine`, `PATCH /bookings/{id}/cancel` |
-| Supplier workspace | `GET /supplier/profile`, practitioner and schedule endpoints |
+| Supplier workspace | `GET/PUT /supplier/profile`, practitioner and schedule endpoints |
+| Supplier services | `GET/POST /supplier/services`, `PUT/DELETE /supplier/services/{id}` |
 | Supplier bookings | `GET /bookings/supplier` |
 | Support | `POST /reports`, staff/admin `GET` and `PATCH /reports` |
 
@@ -378,6 +392,7 @@ BeautyLink/
 4. Set `MYSQL_USERNAME`, `MYSQL_PASSWORD`, and a new production `JWT_SECRET`.
 5. Set `CORS_ALLOWED_ORIGINS` to the exact Vercel website origin.
 6. Set `SPRING_PROFILES_ACTIVE=prod` when demo seeders must be disabled.
+7. Keep `SUPPLIER_AUTO_VERIFY=false` so new partners require approval in production.
 
 Do not use the demo passwords or development JWT secret in production.
 
@@ -422,7 +437,7 @@ The frontend displays a local BeautyLink placeholder when an external supplier i
 - Passwords are BCrypt hashes; plaintext passwords are never stored.
 - JWT-protected endpoints enforce customer, supplier, staff, or admin roles.
 - Secrets remain in ignored environment files.
-- Supplier data is public only after verification.
+- Supplier data is public only after verification. `SUPPLIER_AUTO_VERIFY=true` is intended only for local demonstrations.
 - Real payment processing is not implemented yet.
 
 ## Contributing

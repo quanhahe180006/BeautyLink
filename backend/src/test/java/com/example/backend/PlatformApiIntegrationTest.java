@@ -179,9 +179,11 @@ class PlatformApiIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.auth.accessToken", not(emptyString())))
                 .andExpect(jsonPath("$.auth.user.role", is("SUPPLIER")))
-                .andExpect(jsonPath("$.supplier.verificationStatus", is("PENDING")))
+                .andExpect(jsonPath("$.supplier.verificationStatus", is("VERIFIED")))
                 .andReturn().getResponse().getContentAsString();
-        String token = objectMapper.readTree(response).path("auth").path("accessToken").asText();
+        JsonNode registration = objectMapper.readTree(response);
+        String token = registration.path("auth").path("accessToken").asText();
+        long supplierId = registration.path("supplier").path("id").asLong();
 
         mvc.perform(get("/api/v1/supplier/profile").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name", is("Minh Beauty House")));
@@ -193,6 +195,52 @@ class PlatformApiIntegrationTest {
         mvc.perform(get("/api/v1/supplier/practitioners/" + practitionerId + "/schedule")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(7)));
+
+        mvc.perform(put("/api/v1/supplier/practitioners/" + practitionerId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"displayName":"Le Minh Artist","specialty":"Makeup",
+                                 "bio":"Chuyen vien trang diem","avatarUrl":"data:image/webp;base64,aGVsbG8="}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName", is("Le Minh Artist")))
+                .andExpect(jsonPath("$.avatarUrl", startsWith("data:image/webp;base64,")));
+
+        mvc.perform(put("/api/v1/supplier/profile")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Minh Beauty House","businessType":"Makeup Studio",
+                                 "description":"Studio trang diem chuyen nghiep","addressLine":"25 Nguyen Trai",
+                                 "imageUrl":"data:image/png;base64,aGVsbG8="}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrl", startsWith("data:image/png;base64,")));
+
+        JsonNode categories = objectMapper.readTree(mvc.perform(get("/api/v1/categories"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        long categoryId = categories.get(0).path("id").asLong();
+        mvc.perform(post("/api/v1/supplier/services")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"categoryId":%d,"name":"Makeup du tiec","description":"Phong cach tu nhien",
+                                 "price":450000,"originalPrice":600000,"durationMinutes":90,
+                                 "imageUrl":"data:image/jpeg;base64,aGVsbG8=","active":true}
+                                """.formatted(categoryId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.active", is(true)));
+
+        mvc.perform(get("/api/v1/supplier/services").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+
+        mvc.perform(get("/api/v1/homepage/services").param("locationId", Long.toString(cityId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].supplierId", is((int) supplierId)))
+                .andExpect(jsonPath("$[0].supplierDemo", is(false)))
+                .andExpect(jsonPath("$[0].featured", is(true)));
     }
 
     @Test

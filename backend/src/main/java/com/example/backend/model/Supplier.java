@@ -15,7 +15,7 @@ public class Supplier {
     @Column(length = 1500) private String description;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "location_id") private Location location;
     @Column(nullable = false, length = 255) private String addressLine;
-    @Column(length = 600) private String imageUrl;
+    @Lob @Column(columnDefinition = "LONGTEXT") private String imageUrl;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private VerificationStatus verificationStatus = VerificationStatus.PENDING;
     @Column(nullable = false) private double rating = 0;
     @Column(nullable = false) private int reviewCount = 0;
