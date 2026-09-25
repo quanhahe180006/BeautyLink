@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -115,6 +116,33 @@ class PlatformApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
                 .andExpect(jsonPath("$[*].status", hasItem("CONFIRMED")));
+    }
+
+    @Test
+    void demoSupplierScheduleRemainsAvailableThroughTheNextMonth() throws Exception {
+        JsonNode services = objectMapper.readTree(mvc.perform(get("/api/v1/homepage/services"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        JsonNode service = null;
+        for (JsonNode candidate : services) {
+            if (candidate.path("supplierDemo").asBoolean()) {
+                service = candidate;
+                break;
+            }
+        }
+        assertNotNull(service, "The demo catalog should expose at least one fake supplier");
+        long serviceId = service.path("id").asLong();
+        long practitionerId = service.path("practitioners").get(0).path("id").asLong();
+        LocalDate lastBookableDate = LocalDate.now().plusMonths(1);
+        while (lastBookableDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            lastBookableDate = lastBookableDate.minusDays(1);
+        }
+
+        mvc.perform(get("/api/v1/services/" + serviceId + "/availability")
+                        .param("practitionerId", Long.toString(practitionerId))
+                        .param("date", lastBookableDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date", is(lastBookableDate.toString())))
+                .andExpect(jsonPath("$.availableSlots", not(empty())));
     }
 
     @Test

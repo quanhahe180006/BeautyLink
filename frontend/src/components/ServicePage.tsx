@@ -15,11 +15,19 @@ interface ServicePageProps {
 }
 
 const formatMoney = (amount: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+const formatLocalDate = (value: Date) => {
+  const offset = value.getTimezoneOffset();
+  return new Date(value.getTime() - offset * 60_000).toISOString().slice(0, 10);
+};
 const localDate = (offsetDays = 0) => {
   const value = new Date();
   value.setDate(value.getDate() + offsetDays);
-  const offset = value.getTimezoneOffset();
-  return new Date(value.getTime() - offset * 60_000).toISOString().slice(0, 10);
+  return formatLocalDate(value);
+};
+const bookingWindowEnd = () => {
+  const value = new Date();
+  value.setMonth(value.getMonth() + 1);
+  return formatLocalDate(value);
 };
 
 export const ServicePage: React.FC<ServicePageProps> = ({ category, locationId, locationLabel, currentUser, onBack, onNeedLogin, onBookingCreated }) => {
@@ -91,6 +99,7 @@ export const ServicePage: React.FC<ServicePageProps> = ({ category, locationId, 
 };
 
 export function BookingDialog({ service, currentUser, onClose, onNeedLogin, onCreated }: { service: BeautyService; currentUser: CurrentUser | null; onClose: () => void; onNeedLogin: () => void; onCreated: (code: string) => void }) {
+  const latestBookingDate = useMemo(bookingWindowEnd, []);
   const [practitioner, setPractitioner] = useState<Practitioner | null>(service.practitioners[0] || null);
   const [date, setDate] = useState(localDate(1));
   const [slots, setSlots] = useState<string[]>([]);
@@ -128,7 +137,7 @@ export function BookingDialog({ service, currentUser, onClose, onNeedLogin, onCr
         <div className="flex items-start justify-between border-b border-slate-100 p-6"><div><p className="text-xs font-extrabold uppercase tracking-wider text-pink-600">Xác nhận lịch hẹn</p><h2 className="mt-1 text-xl font-black">{service.name}</h2><p className="mt-1 text-sm text-slate-500">{service.supplierName}</p></div><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-pink-50 hover:text-pink-700"><X className="h-4 w-4" /></button></div>
         <div className="space-y-5 p-6">
           <div><label className="mb-2 block text-xs font-black text-slate-700">Chuyên viên</label><div className="grid gap-2 sm:grid-cols-2">{service.practitioners.map((person) => <button key={person.id} onClick={() => setPractitioner(person)} className={`flex items-center gap-3 rounded-2xl border p-3 text-left ${practitioner?.id === person.id ? 'border-pink-500 bg-pink-50' : 'border-slate-200'}`}><span className="grid h-9 w-9 place-items-center rounded-full bg-white"><UserRound className="h-4 w-4 text-pink-600" /></span><span><span className="block text-sm font-extrabold">{person.displayName}</span><span className="block text-[11px] text-slate-500">{person.specialty}</span></span></button>)}</div></div>
-          <label className="block"><span className="mb-2 block text-xs font-black text-slate-700">Ngày hẹn</span><input type="date" min={localDate()} value={date} onChange={(event) => setDate(event.target.value)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-pink-400" /></label>
+          <label className="block"><span className="mb-2 block text-xs font-black text-slate-700">Ngày hẹn</span><input type="date" min={localDate()} max={latestBookingDate} value={date} onChange={(event) => setDate(event.target.value)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-pink-400" /><span className="mt-1.5 block text-[11px] font-semibold text-slate-400">Có thể đặt lịch trước đến {new Date(`${latestBookingDate}T00:00:00`).toLocaleDateString('vi-VN')}.</span></label>
           <div><span className="mb-2 block text-xs font-black text-slate-700">Khung giờ còn trống</span>{loadingSlots ? <LoaderCircle className="h-5 w-5 animate-spin text-pink-600" /> : slots.length ? <div className="grid grid-cols-4 gap-2">{slots.map((slot) => <button key={slot} onClick={() => setTime(slot)} className={`rounded-xl border px-2 py-2.5 text-xs font-extrabold ${time === slot ? 'border-pink-600 bg-pink-600 text-white' : 'border-slate-200 hover:border-pink-300'}`}>{slot}</button>)}</div> : <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">Không còn khung giờ trong ngày này.</p>}</div>
           <label className="block"><span className="mb-2 block text-xs font-black text-slate-700">Ghi chú <span className="font-normal text-slate-400">(không bắt buộc)</span></span><textarea maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} className="min-h-20 w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-pink-400" placeholder="Dị ứng, yêu cầu đặc biệt..." /></label>
           {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">{error}</p>}
