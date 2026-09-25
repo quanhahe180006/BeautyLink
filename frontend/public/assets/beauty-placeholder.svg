@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">BeautyLink image placeholder</title>
+  <desc id="desc">Pastel pink BeautyLink placeholder for an unavailable supplier image</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0f3"/>
+      <stop offset="1" stop-color="#f8d8df"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eb0f51"/>
+      <stop offset="1" stop-color="#b42d58"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#background)"/>
+  <circle cx="400" cy="205" r="76" fill="#fff" opacity=".82"/>
+  <path d="M400 144c7 31 24 48 55 55-31 7-48 24-55 55-7-31-24-48-55-55 31-7 48-24 55-55Z" fill="url(#mark)"/>
+  <circle cx="458" cy="157" r="10" fill="#d28474"/>
+  <text x="400" y="326" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="800" fill="#1e293b">Beauty<tspan fill="#eb0f51">Link</tspan></text>
+  <text x="400" y="365" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="3" fill="#b42d58">SẮC ĐẸP &amp; SPA UY TÍN</text>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "BeautyPink - Nền Tảng Đặt Lịch Làm Đẹp & Spa",
+  "description": "Nền tảng tìm kiếm và đặt lịch làm đẹp, spa, thẩm mỹ viện, salon tóc & clinic hàng đầu với ưu đãi hấp dẫn và phong cách hồng pastel thanh lịch.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

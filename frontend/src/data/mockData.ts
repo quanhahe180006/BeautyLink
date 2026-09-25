@@ -1,0 +1,556 @@
+export interface HotDeal {
+  id: string;
+  serviceId?: number;
+  title: string;
+  brandName: string;
+  brandLogo: string;
+  image: string;
+  originalPrice: number;
+  salePrice: number;
+  discountPercent: number;
+  isNew?: boolean;
+  rating: number;
+  reviewsCount: number;
+  duration: string;
+  category: string;
+  highlightText: string;
+  distanceKm?: number;
+  district?: string;
+}
+
+export interface Salon {
+  id: string;
+  serviceId?: number;
+  name: string;
+  category: 'spa' | 'tham-my-vien' | 'clinic' | 'massage' | 'nail' | 'salon-toc';
+  categoryLabel: string;
+  address: string;
+  district: string;
+  distanceKm: number;
+  rating: number;
+  reviewsCount: number;
+  image: string;
+  logo: string;
+  badge?: string;
+  isFeatured?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+export interface NewPartner {
+  id: string;
+  serviceId?: number;
+  name: string;
+  subTitle: string;
+  address: string;
+  image: string;
+  logo: string;
+  specialty: string;
+  promoNotice: string;
+}
+
+export interface CityDestination {
+  id: string;
+  name: string;
+  count: string;
+  image: string;
+}
+
+export interface Voucher {
+  code: string;
+  title: string;
+  discount: string;
+  minOrder: string;
+  expiry: string;
+  tag: string;
+}
+
+export const CATEGORIES = [
+  { id: '1', name: 'Thẩm Mỹ Mặt - Hàm', icon: 'Sparkles', count: '1.2k+ dịch vụ' },
+  { id: '2', name: 'Phun Xăm Điêu Khắc', icon: 'Feather', count: '850+ dịch vụ' },
+  { id: '3', name: 'Trị Liệu Da Chuyên Sâu', icon: 'Activity', count: '2.4k+ dịch vụ' },
+  { id: '4', name: 'Thẩm Mỹ Mắt', icon: 'Eye', count: '620+ dịch vụ' },
+  { id: '5', name: 'Căng Da & Trẻ Hóa', icon: 'Zap', count: '940+ dịch vụ' },
+  { id: '6', name: 'Chăm Sóc Toàn Thân', icon: 'Heart', count: '1.8k+ dịch vụ' },
+  { id: '7', name: 'Chăm Sóc Da Mặt', icon: 'Smile', count: '3.1k+ dịch vụ' },
+  { id: '8', name: 'Tắm Trắng Hồng Sen', icon: 'Sun', count: '730+ dịch vụ' },
+  { id: '9', name: 'Gội Đầu Dưỡng Sinh', icon: 'Waves', count: '2.9k+ dịch vụ' },
+  { id: '10', name: 'Nail Xinh Xu Hướng', icon: 'Hand', count: '1.5k+ dịch vụ' },
+  { id: '11', name: 'Nha Khoa Nụ Cười', icon: 'ShieldCheck', count: '890+ dịch vụ' },
+  { id: '12', name: 'Nối Mi Tự Nhiên', icon: 'Camera', count: '1.1k+ dịch vụ' },
+];
+
+export const HOT_DEALS: HotDeal[] = [
+  {
+    id: 'deal-1',
+    title: 'Chăm Sóc Da Lưng - Nặn Mụn & Làm Sạch Dịu Nhẹ',
+    brandName: 'Venus Beauty Spa',
+    brandLogo: 'VB',
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 750000,
+    salePrice: 400000,
+    discountPercent: 47,
+    isNew: true,
+    rating: 4.9,
+    reviewsCount: 342,
+    duration: '60 phút',
+    category: 'spa',
+    highlightText: 'Tặng tẩy tế bào chết cà phê muối biển',
+    distanceKm: 1.2,
+    district: 'Quận 1',
+  },
+  {
+    id: 'deal-2',
+    title: 'Làm Sạch - Nặn Mụn Lưng Chuẩn Y Khoa Dịu Nhẹ',
+    brandName: 'Lotus Wellness Clinic',
+    brandLogo: 'LW',
+    image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 600000,
+    salePrice: 350000,
+    discountPercent: 42,
+    rating: 4.8,
+    reviewsCount: 189,
+    duration: '75 phút',
+    category: 'clinic',
+    highlightText: 'Sử dụng dược mỹ phẩm hữu cơ dịu nhẹ',
+    distanceKm: 2.5,
+    district: 'Quận 3',
+  },
+  {
+    id: 'deal-3',
+    title: 'Điều Trị Mụn Bằng Ánh Sáng Sinh Học Phấn Hồng',
+    brandName: 'Pink Clinic & Academy',
+    brandLogo: 'PC',
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 250000,
+    salePrice: 99000,
+    discountPercent: 60,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 524,
+    duration: '45 phút',
+    category: 'clinic',
+    highlightText: 'Kháng viêm tầng sâu không để lại thâm',
+    distanceKm: 0.9,
+    district: 'Bình Thạnh',
+  },
+  {
+    id: 'deal-4',
+    title: 'Gói Thư Giãn 90 Phút - Chăm Sóc Toàn Thân & Làn Da',
+    brandName: 'An Miên Spa Dưỡng Sinh',
+    brandLogo: 'AM',
+    image: 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 648000,
+    salePrice: 499000,
+    discountPercent: 23,
+    rating: 4.9,
+    reviewsCount: 680,
+    duration: '90 phút',
+    category: 'massage',
+    highlightText: 'Massage đá nóng bazan + tinh dầu hoa hồng',
+    distanceKm: 1.4,
+    district: 'Quận 1',
+  },
+  {
+    id: 'deal-5',
+    title: 'An Miên Signature - Gội Dưỡng Sinh & Chăm Sóc Da Mặt',
+    brandName: 'An Miên Spa Thảo Mộc',
+    brandLogo: 'AM',
+    image: 'https://images.unsplash.com/photo-1512290900672-1f5be63fa7ba?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 336000,
+    salePrice: 270000,
+    discountPercent: 20,
+    rating: 4.9,
+    reviewsCount: 890,
+    duration: '70 phút',
+    category: 'spa',
+    highlightText: 'Nước thảo mộc bồ kết cô đặc 12 vị',
+    distanceKm: 3.2,
+    district: 'Phú Nhuận',
+  },
+  {
+    id: 'deal-6',
+    title: 'Cấy Tinh Chất Hoa Hồng - Trắng Sáng & Căng Bóng Da',
+    brandName: 'Bella Beauty Clinic',
+    brandLogo: 'BB',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 1200000,
+    salePrice: 599000,
+    discountPercent: 50,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 412,
+    duration: '60 phút',
+    category: 'clinic',
+    highlightText: 'Tinh chất hoa hồng Damascus hữu cơ',
+    distanceKm: 4.5,
+    district: 'Quận 7',
+  },
+  {
+    id: 'deal-7',
+    title: 'Sơn Gel Móng Tay Thiết Kế Hàn Quốc Tặng Cắt Da',
+    brandName: 'Anail Boutique',
+    brandLogo: 'AN',
+    image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 350000,
+    salePrice: 189000,
+    discountPercent: 46,
+    rating: 4.8,
+    reviewsCount: 320,
+    duration: '50 phút',
+    category: 'nail',
+    highlightText: 'Sơn gel thạch hồng pastel cao cấp',
+    distanceKm: 0.8,
+    district: 'Phú Nhuận',
+  },
+  {
+    id: 'deal-8',
+    title: 'Triệt Lông Nách / Mép Diode Laser Vĩnh Viễn Không Đau',
+    brandName: 'Lotus Wellness Clinic',
+    brandLogo: 'LW',
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 400000,
+    salePrice: 99000,
+    discountPercent: 75,
+    isNew: true,
+    rating: 4.9,
+    reviewsCount: 654,
+    duration: '30 phút',
+    category: 'spa',
+    highlightText: 'Bảo hành trọn gói 3 năm không giới hạn',
+    distanceKm: 2.1,
+    district: 'Quận 10',
+  },
+  {
+    id: 'deal-9',
+    title: 'Liệu Trình Trẻ Hóa Da Tức Thì Beauty Radiance 199K',
+    brandName: 'PMT Aesthetic Clinic',
+    brandLogo: 'PMT',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 2500000,
+    salePrice: 199000,
+    discountPercent: 92,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 780,
+    duration: '60 phút',
+    category: 'clinic',
+    highlightText: 'Soi da 3D và điện di Collagen tươi thế hệ mới',
+    distanceKm: 1.6,
+    district: 'Quận 1',
+  },
+  {
+    id: 'deal-10',
+    title: 'Điêu Khắc Chân Mày Hairstroke Vi Chạm & Tặng Phủ Bóng',
+    brandName: 'Hồng Sen Beauty Academy',
+    brandLogo: 'HS',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 2800000,
+    salePrice: 899000,
+    discountPercent: 68,
+    isNew: true,
+    rating: 5.0,
+    reviewsCount: 460,
+    duration: '90 phút',
+    category: 'tham-my-vien',
+    highlightText: 'Bảo hành dặm miễn phí trong 6 tháng',
+    distanceKm: 3.5,
+    district: 'Quận 10',
+  },
+  {
+    id: 'deal-11',
+    title: 'Gội Đầu Dưỡng Sinh Thảo Dược 12 Vị + Massage Cổ Vai Gáy',
+    brandName: 'Mộc Nhiên Dưỡng Sinh Đường',
+    brandLogo: 'MN',
+    image: 'https://images.unsplash.com/photo-1519735777090-ec97162dc266?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 350000,
+    salePrice: 129000,
+    discountPercent: 63,
+    rating: 4.8,
+    reviewsCount: 512,
+    duration: '65 phút',
+    category: 'massage',
+    highlightText: 'Canh bồ kết vỏ bưởi ấm nóng đả thông kinh lạc',
+    distanceKm: 0.6,
+    district: 'Bình Thạnh',
+  },
+  {
+    id: 'deal-12',
+    title: 'Combo Nối Mi Thiết Kế Baby Doll & Dưỡng Mi Collagen',
+    brandName: 'De Paris Lash Studio',
+    brandLogo: 'DP',
+    image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+    originalPrice: 450000,
+    salePrice: 220000,
+    discountPercent: 51,
+    rating: 4.9,
+    reviewsCount: 290,
+    duration: '60 phút',
+    category: 'nail',
+    highlightText: 'Sợi mi tơ siêu nhẹ không cộm ngứa',
+    distanceKm: 2.8,
+    district: 'Quận 3',
+  },
+];
+
+export const NEARBY_SALONS: Salon[] = [
+  {
+    id: 'salon-1',
+    name: 'ANAIL BOUTIQUE',
+    category: 'nail',
+    categoryLabel: 'Nail & Eyelash',
+    address: '137/11 Lê Văn Sỹ, Phường 13, Quận Phú Nhuận',
+    district: 'Phú Nhuận',
+    distanceKm: 0.8,
+    rating: 4.9,
+    reviewsCount: 215,
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+    logo: 'AN',
+    badge: 'Được yêu thích nhất',
+    isFeatured: true,
+    minPrice: 120000,
+    maxPrice: 350000,
+  },
+  {
+    id: 'salon-2',
+    name: 'CÔNG TY TNHH TM DV AN MIÊN SPA',
+    category: 'spa',
+    categoryLabel: 'Spa & Dưỡng Sinh',
+    address: '94 Nguyễn Thái Bình, Phường Bến Thành, Quận 1',
+    district: 'Quận 1',
+    distanceKm: 1.4,
+    rating: 5.0,
+    reviewsCount: 489,
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=600&q=80',
+    logo: 'AM',
+    badge: 'Top 1 Spa Trung Tâm',
+    isFeatured: true,
+    minPrice: 250000,
+    maxPrice: 650000,
+  },
+  {
+    id: 'salon-3',
+    name: 'TỊNH Y VIÊN DƯỠNG THÂN',
+    category: 'massage',
+    categoryLabel: 'Massage Center',
+    address: '14 Trà Khúc, Phường 02, Quận Tân Bình',
+    district: 'Tân Bình',
+    distanceKm: 2.1,
+    rating: 4.8,
+    reviewsCount: 162,
+    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80',
+    logo: 'TY',
+    badge: 'Liệu trình gia truyền',
+    minPrice: 180000,
+    maxPrice: 500000,
+  },
+  {
+    id: 'salon-4',
+    name: 'EUPHOREA SALON & WELLNESS',
+    category: 'spa',
+    categoryLabel: 'Spa & Thẩm Mỹ',
+    address: '392/5 Ung Văn Khiêm, Phường 25, Quận Bình Thạnh',
+    district: 'Bình Thạnh',
+    distanceKm: 3.2,
+    rating: 4.9,
+    reviewsCount: 310,
+    image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=600&q=80',
+    logo: 'EU',
+    badge: 'Chuẩn 5 Sao',
+    minPrice: 350000,
+    maxPrice: 950000,
+  },
+  {
+    id: 'salon-5',
+    name: 'LAVI BEAUTY CLINIC',
+    category: 'tham-my-vien',
+    categoryLabel: 'Thẩm Mỹ Viện',
+    address: '330/1D Phan Đình Phùng, Phường 01, Quận Phú Nhuận',
+    district: 'Phú Nhuận',
+    distanceKm: 1.1,
+    rating: 4.9,
+    reviewsCount: 278,
+    image: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?auto=format&fit=crop&w=600&q=80',
+    logo: 'LB',
+    badge: 'Chuyên gia Hàn Quốc',
+    minPrice: 300000,
+    maxPrice: 1200000,
+  },
+  {
+    id: 'salon-6',
+    name: 'HERA HAIR ARTISAN',
+    category: 'salon-toc',
+    categoryLabel: 'Salon Tóc',
+    address: '88 Võ Thị Sáu, Phường Tân Định, Quận 1',
+    district: 'Quận 1',
+    distanceKm: 1.9,
+    rating: 4.8,
+    reviewsCount: 195,
+    image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=600&q=80',
+    logo: 'HA',
+    badge: 'Uốn nhuộm hữu cơ',
+    minPrice: 150000,
+    maxPrice: 600000,
+  },
+  {
+    id: 'salon-7',
+    name: 'SHINE DENTAL & ESTHETICS',
+    category: 'clinic',
+    categoryLabel: 'Nha Khoa & Clinic',
+    address: '154 Trần Não, Phường An Khánh, TP. Thủ Đức',
+    district: 'Thủ Đức',
+    distanceKm: 4.2,
+    rating: 4.9,
+    reviewsCount: 184,
+    image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80',
+    logo: 'SD',
+    badge: 'Công nghệ Đức',
+    minPrice: 400000,
+    maxPrice: 1500000,
+  },
+  {
+    id: 'salon-8',
+    name: 'ORCHID RETREAT & FOOT SPA',
+    category: 'massage',
+    categoryLabel: 'Massage Center',
+    address: '28 Đường số 7, Phường Tân Kiểng, Quận 7',
+    district: 'Quận 7',
+    distanceKm: 7.5,
+    rating: 4.7,
+    reviewsCount: 142,
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
+    logo: 'OR',
+    badge: 'Thảo mộc tự nhiên',
+    minPrice: 200000,
+    maxPrice: 450000,
+  },
+];
+
+export const NEW_PARTNERS: NewPartner[] = [
+  {
+    id: 'p-1',
+    name: 'iShine Spa - Chăm Da Khoa Học',
+    subTitle: 'A GENTLE PAUSE FOR SKIN AND SOUL',
+    address: 'Số 28, Đường số 1, KDC Cityland Riverside, Quận 7, TP. HCM',
+    specialty: 'Phục hồi da tổn thương, peel sinh học hoa hồng',
+    promoNotice: 'Giảm 35% tất cả dịch vụ khai trương',
+    image: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
+    logo: 'IS',
+  },
+  {
+    id: 'p-2',
+    name: 'ÁNH DƯƠNG SPA DƯỠNG SINH',
+    subTitle: 'DƯỠNG SINH TRỊ LIỆU ĐÔNG Y',
+    address: '15 Đường 41, Phường 06, Quận 4, TP. HCM',
+    specialty: 'Đả thông kinh lạc, vai gáy chuyên sâu',
+    promoNotice: 'Tặng buổi xông hơi thảo dược 200k',
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=600&q=80',
+    logo: 'AD',
+  },
+  {
+    id: 'p-3',
+    name: 'Lavi Beauty - Mi Cong Da Xinh',
+    subTitle: 'NÂNG NIU VẺ ĐẸP TỰ NHIÊN',
+    address: '330/1D Phan Đình Phùng, Phường 01, Quận Phú Nhuận, TP. HCM',
+    specialty: 'Nối mi thiết kế, cấy mi sinh học công nghệ mới',
+    promoNotice: 'Tặng dưỡng mi Collagen độc quyền',
+    image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=600&q=80',
+    logo: 'LB',
+  },
+  {
+    id: 'p-4',
+    name: 'ACNE STUDIO CLINIC',
+    subTitle: 'GLOW LIKE A ROSE IN FULL BLOOM',
+    address: '10 Đường số 8 Hà Đô Centrosa, Phường 12, Quận 10, TP. HCM',
+    specialty: 'Trị mụn dứt điểm, sẹo rỗ công nghệ Hoa Kỳ',
+    promoNotice: 'Khám và soi da 3D miễn phí cùng Bác Sĩ',
+    image: 'https://images.unsplash.com/photo-1512290900672-1f5be63fa7ba?auto=format&fit=crop&w=600&q=80',
+    logo: 'AS',
+  },
+  {
+    id: 'p-5',
+    name: 'MÂY SPA DƯỠNG SINH CỔ TRUYỀN',
+    subTitle: 'BÀI THÔNG KINH LẠC NGŨ HÀNH',
+    address: '45 Đặng Thai Mai, Phường 7, Quận Phú Nhuận, TP. HCM',
+    specialty: 'Gội đầu dưỡng sinh canh thuốc thảo dược',
+    promoNotice: 'Tặng xông chân thảo mộc 100k',
+    image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=600&q=80',
+    logo: 'MS',
+  },
+  {
+    id: 'p-6',
+    name: 'ROYAL BEAUTY & DENTAL',
+    subTitle: 'NỤ CƯỜI TỎA SÁNG KHÍ CHẤT',
+    address: '215 Nguyễn Đình Chiểu, Phường 5, Quận 3, TP. HCM',
+    specialty: 'Tẩy trắng răng laser & Răng sứ thẩm mỹ',
+    promoNotice: 'Giảm 50% tẩy trắng răng công nghệ Mỹ',
+    image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80',
+    logo: 'RB',
+  },
+];
+
+export const CITIES: CityDestination[] = [
+  {
+    id: 'city-1',
+    name: 'Hồ Chí Minh',
+    count: '2.000+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=500&q=80',
+  },
+  {
+    id: 'city-2',
+    name: 'Hà Nội',
+    count: '700+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=80',
+  },
+  {
+    id: 'city-3',
+    name: 'Hải Phòng',
+    count: '300+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=500&q=80',
+  },
+  {
+    id: 'city-4',
+    name: 'Đà Nẵng',
+    count: '200+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=500&q=80',
+  },
+  {
+    id: 'city-5',
+    name: 'Cần Thơ',
+    count: '200+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=500&q=80',
+  },
+  {
+    id: 'city-6',
+    name: 'Thanh Hóa',
+    count: '150+ Địa điểm',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=500&q=80',
+  },
+];
+
+export const VOUCHERS: Voucher[] = [
+  {
+    code: 'BEAUTYPINK50',
+    title: 'Giảm 50.000đ cho đơn đầu tiên',
+    discount: '50.000đ',
+    minOrder: 'Từ 200.000đ',
+    expiry: 'HSD: 30/10/2026',
+    tag: 'Độc quyền BeautyPink',
+  },
+  {
+    code: 'SPASEN100',
+    title: 'Giảm 100.000đ dịch vụ Massage & Dưỡng Sinh',
+    discount: '100.000đ',
+    minOrder: 'Từ 400.000đ',
+    expiry: 'HSD: 25/10/2026',
+    tag: 'Spa Dưỡng Sinh',
+  },
+  {
+    code: 'GLOWROSE',
+    title: 'Giảm 25% tối đa 150k cho liệu trình chăm sóc da',
+    discount: 'Giảm 25%',
+    minOrder: 'Từ 350.000đ',
+    expiry: 'HSD: 15/10/2026',
+    tag: 'Chăm sóc da',
+  },
+];

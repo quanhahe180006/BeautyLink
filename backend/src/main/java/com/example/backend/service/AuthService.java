@@ -1,0 +1,42 @@
+package com.example.backend.service;
+
+import com.example.backend.auth.JwtService;
+import com.example.backend.dto.ApiDtos.*;
+import com.example.backend.exception.ApiException;
+import com.example.backend.model.UserAccount;
+import com.example.backend.repository.UserAccountRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import static com.example.backend.model.DomainEnums.*;
+
+@Service
+public class AuthService {
+    private final UserAccountRepository users; private final PasswordEncoder encoder; private final JwtService jwt; private final AuthenticationManager authenticationManager;
+    public AuthService(UserAccountRepository users, PasswordEncoder encoder, JwtService jwt, AuthenticationManager authenticationManager) {
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.authenticationManager = authenticationManager;
+    }
+    @Transactional public AuthResponse register(RegisterRequest request) {
+        String phone = normalizePhone(request.phone());
+        if (users.existsByPhone(phone)) throw new ApiException(HttpStatus.CONFLICT, "PHONE_EXISTS", "Số điện thoại đã được đăng ký");
+        if (request.email() != null && !request.email().isBlank() && users.existsByEmailIgnoreCase(request.email().trim())) throw new ApiException(HttpStatus.CONFLICT, "EMAIL_EXISTS", "Email đã được đăng ký");
+        UserAccount user = new UserAccount(); user.setFullName(request.fullName().trim()); user.setPhone(phone);
+        user.setEmail(request.email() == null || request.email().isBlank() ? null : request.email().trim().toLowerCase());
+        user.setPasswordHash(encoder.encode(request.password())); user.setRole(Role.CUSTOMER); user.setStatus(AccountStatus.ACTIVE);
+        return response(users.save(user));
+    }
+    public AuthResponse login(LoginRequest request) {
+        String identifier = request.identifier().trim();
+        UserAccount user = identifier.contains("@") ? users.findByEmailIgnoreCase(identifier).orElse(null) : users.findByPhone(normalizePhone(identifier)).orElse(null);
+        if (user == null) throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Thông tin đăng nhập không chính xác");
+        try { authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getPhone(), request.password())); }
+        catch (AuthenticationException ex) { throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Thông tin đăng nhập không chính xác"); }
+        return response(user);
+    }
+    public AuthResponse response(UserAccount user) { return new AuthResponse(jwt.createToken(user), "Bearer", jwt.getExpirationMs(), toUser(user)); }
+    public UserResponse toUser(UserAccount u) { return new UserResponse(u.getId(), u.getFullName(), u.getPhone(), u.getEmail(), u.getRole(), u.getLoyaltyPoints()); }
+    public static String normalizePhone(String value) { return value == null ? "" : value.replaceAll("[\\s.-]", ""); }
+}

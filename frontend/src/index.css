@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pink-50: #fff0f3;
+  --color-pink-100: #ffe0e7;
+  --color-pink-200: #fbc6d2;
+  --color-pink-300: #f3a6b8;
+  --color-pink-400: #e6849c;
+  --color-pink-500: #d95f7f;
+  --color-pink-600: #eb0f51;
+  --color-pink-700: #b42d58;
+  --color-pink-800: #8f2447;
+  --color-pink-900: #6f1e3a;
+  --color-pink-950: #451022;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: #fff0f3;
+  }
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#EB0F51] focus:ring-3 focus:ring-pink-100;
+  }
+}
+
+/* Custom scrollbar for horizontal category / card sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Subtle pink glow effects */
+.pink-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(244, 230, 235, 0.5) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(244, 230, 235, 0.5) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
